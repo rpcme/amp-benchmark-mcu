@@ -34,7 +34,21 @@
 #include "ti_drivers_config.h"
 #include "ti_board_config.h"
 
+#include "FreeRTOSConfig.h"
+#include "FreeRTOS.h"
+#include "task.h"
+
 void benchmarkdemo_foc_main(void *args);
+
+TaskHandle_t xFocTaskHandle;
+#define FOC_STACK_SIZE    2 * configMINIMAL_STACK_SIZE
+#define FOC_TASK_PRIORITY 0
+#define FOC_TASK_NAME     "FOC"
+
+void vBenchmarkDemoFoc( void * pvParameters )
+{
+  benchmarkdemo_foc_main(NULL);
+}
 
 int main()
 {
@@ -43,8 +57,14 @@ int main()
 
     benchmarkdemo_foc_main(NULL);
 
-    Board_deinit();
-    System_deinit();
+    xTaskCreate( vBenchmarkDemoFoc,
+                 FOC_TASK_NAME,
+                 FOC_STACK_SIZE,
+                 NULL,
+                 FOC_TASK_PRIORITY,
+                 &xFocTaskHandle );
 
-    return 0;
+    vTaskStartScheduler();
+    
+    for ( ;; );
 }

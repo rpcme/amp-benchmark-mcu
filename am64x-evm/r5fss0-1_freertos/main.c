@@ -34,7 +34,21 @@
 #include "ti_drivers_config.h"
 #include "ti_board_config.h"
 
+#include "FreeRTOSConfig.h"
+#include "FreeRTOS.h"
+#include "task.h"
+
 void benchmarkdemo_cfft_main(void *args);
+
+TaskHandle_t xCfftTaskHandle;
+#define CFFT_STACK_SIZE    2 * configMINIMAL_STACK_SIZE
+#define CFFT_TASK_PRIORITY 0
+#define CFFT_TASK_NAME     "CFFT"
+
+void vBenchmarkDemoCfft( void * pvParameters )
+{
+  benchmarkdemo_cfft_main(NULL);
+}
 
 int main()
 {
@@ -43,8 +57,14 @@ int main()
 
     benchmarkdemo_cfft_main(NULL);
 
-    Board_deinit();
-    System_deinit();
+    xTaskCreate( vBenchmarkDemoCfft,
+                 CFFT_TASK_NAME,
+                 CFFT_STACK_SIZE,
+                 NULL,
+                 CFFT_TASK_PRIORITY,
+                 &xCfftTaskHandle );
 
-    return 0;
+    vTaskStartScheduler();
+    
+    for ( ;; );
 }

@@ -34,7 +34,21 @@
 #include "ti_drivers_config.h"
 #include "ti_board_config.h"
 
+#include "FreeRTOSConfig.h"
+#include "FreeRTOS.h"
+#include "task.h"
+
 void benchmarkdemo_fir_main(void *args);
+
+TaskHandle_t xFirTaskHandle;
+#define FIR_STACK_SIZE    2 * configMINIMAL_STACK_SIZE
+#define FIR_TASK_PRIORITY 0
+#define FIR_TASK_NAME     "FIR"
+
+void vBenchmarkDemoFir( void * pvParameters )
+{
+  benchmarkdemo_fir_main(NULL);
+}
 
 int main()
 {
@@ -43,8 +57,16 @@ int main()
 
     benchmarkdemo_fir_main(NULL);
 
-    Board_deinit();
-    System_deinit();
+    xTaskCreate( vBenchmarkDemoFir,
+                 FIR_TASK_NAME,
+                 FIR_STACK_SIZE,
+                 NULL,
+                 FIR_TASK_PRIORITY,
+                 &xFirTaskHandle );
+
+    vTaskStartScheduler();
+    
+    for ( ;; );
 
     return 0;
 }
