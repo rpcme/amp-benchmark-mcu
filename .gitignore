@@ -50,3 +50,7 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+am64-main-r5f?_?-fw
+benchmark_demo.release.*
+**/generated
+benchmark_demo_system.release.appimage
