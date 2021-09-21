@@ -33,18 +33,15 @@
 #include <stdlib.h>
 #include "ti_drivers_config.h"
 #include "ti_board_config.h"
-#include "FreeRTOSConfig.h"
-#include "FreeRTOS.h"
-#include "task.h"
 
-void benchmarkdemo_adc_pwm_main(void *args);
+void benchmarkdemo_cfft_main(void *args);
 
 int main()
 {
     System_init();
     Board_init();
 
-    benchmarkdemo_adc_pwm_main(NULL);
+    benchmarkdemo_cfft_main(NULL);
 
     Board_deinit();
     System_deinit();
