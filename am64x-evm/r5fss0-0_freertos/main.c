@@ -33,21 +33,36 @@
 #include <stdlib.h>
 #include "ti_drivers_config.h"
 #include "ti_board_config.h"
+
 #include "FreeRTOSConfig.h"
 #include "FreeRTOS.h"
 #include "task.h"
 
 void benchmarkdemo_adc_pwm_main(void *args);
 
-int main()
+TaskHandle_t xAdcPwmTaskHandle;
+#define ADCPWM_STACK_SIZE    2 * configMINIMAL_STACK_SIZE
+#define ADCPWM_TASK_PRIORITY 0
+#define ADCPWM_TASK_NAME     "ADCPWM"
+
+void vBenchmarkDemoAdcPwm( void * pvParameters )
+{
+  benchmarkdemo_adc_pwm_main(NULL);
+}
+
+int main( void )
 {
     System_init();
     Board_init();
 
-    benchmarkdemo_adc_pwm_main(NULL);
+    xTaskCreate( vBenchmarkDemoAdcPwm,
+                 ADCPWM_TASK_NAME,
+                 ADCPWM_STACK_SIZE,
+                 NULL,
+                 ADCPWM_TASK_PRIORITY,
+                 &xAdcPwmTaskHandle );
 
-    Board_deinit();
-    System_deinit();
-
-    return 0;
+    vTaskStartScheduler();
+    
+    for ( ;; );
 }
