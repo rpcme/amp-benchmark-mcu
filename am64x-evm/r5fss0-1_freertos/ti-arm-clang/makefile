@@ -24,7 +24,9 @@ BOOTIMAGE_RPRC_NAME:=benchmark_demo.$(PROFILE).rprc
 
 FILES_common := \
 	main.c \
-	adc_pwm_main.c \
+	cfft.c \
+	cfft_main.c \
+	math_helper.c \
 	benchmarkdemo_stats.c \
 	benchmarkdemo_timer.c \
 	benchmarkdemo_ipc.c \
@@ -38,7 +40,7 @@ FILES_common := \
 
 FILES_PATH_common = \
 	.. \
-	../../../adc_pwm \
+	../../../cmsis_cfft \
 	../../../common \
 	generated \
 
@@ -128,11 +130,11 @@ vpath %.lib $(LIBS_PATH_NAME)
 vpath %.a $(LIBS_PATH_NAME)
 
 $(OBJDIR)/%.obj %.obj: %.c
-	@echo  Compiling: am64x:r5fss0-0:freertos:ti-arm-clang $(OUTNAME): $<
+	@echo  Compiling: am64x:r5fss0-1:freertos:ti-arm-clang $(OUTNAME): $<
 	$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) -MMD -o $(OBJDIR)/$@ $<
 
 $(OBJDIR)/%.obj %.obj: %.S
-	@echo  Compiling: am64x:r5fss0-0:freertos:ti-arm-clang $(LIBNAME): $<
+	@echo  Compiling: am64x:r5fss0-1:freertos:ti-arm-clang $(LIBNAME): $<
 	$(CC) -c $(CFLAGS) -o $(OBJDIR)/$@ $<
 
 all: $(BOOTIMAGE_NAME)
@@ -146,27 +148,27 @@ SYSCFG_GEN_FILES+=generated/ti_board_open_close.c generated/ti_board_open_close.
 
 $(OUTNAME): syscfg $(SYSCFG_GEN_FILES) $(OBJS) $(LNK_FILES) $(LIBS_NAME)
 	@echo  .
-	@echo  Linking: am64x:r5fss0-0:freertos:ti-arm-clang $@ ...
+	@echo  Linking: am64x:r5fss0-1:freertos:ti-arm-clang $@ ...
 	$(LNK) $(LFLAGS) $(LIBS_PATH) -Wl,-m=$(basename $@).map -o $@ $(addprefix $(OBJDIR), $(OBJS)) $(LIBS) $(LNK_FILES)
-	$(RM) am64-main-r5f0_0-fw
-	$(STRIP) -o=am64-main-r5f0_0-fw $@
-	@echo  Linking: am64x:r5fss0-0:freertos:ti-arm-clang $@ Done !!!
+	$(RM) am64-main-r5f0_1-fw
+	$(STRIP) -o=am64-main-r5f0_1-fw $@
+	@echo  Linking: am64x:r5fss0-1:freertos:ti-arm-clang $@ Done !!!
 	@echo  .
 
 clean:
-	@echo  Cleaning: am64x:r5fss0-0:freertos:ti-arm-clang $(OUTNAME) ...
+	@echo  Cleaning: am64x:r5fss0-1:freertos:ti-arm-clang $(OUTNAME) ...
 	$(RMDIR) $(OBJDIR)
 	$(RM) $(OUTNAME)
-	$(RM) am64-main-r5f0_0-fw
+	$(RM) am64-main-r5f0_1-fw
 	$(RM) $(BOOTIMAGE_NAME)
 	$(RM) $(BOOTIMAGE_NAME_SIGNED)
 	$(RM) $(BOOTIMAGE_RPRC_NAME)
 	$(RMDIR) generated/
 
 scrub:
-	@echo  Scrubing: am64x:r5fss0-0:freertos:ti-arm-clang benchmark_demo ...
+	@echo  Scrubing: am64x:r5fss0-1:freertos:ti-arm-clang benchmark_demo ...
 	$(RMDIR) obj
-	$(RM) am64-main-r5f0_0-fw
+	$(RM) am64-main-r5f0_1-fw
 ifeq ($(OS),Windows_NT)
 	$(RM) \*.out
 	$(RM) \*.map
@@ -199,10 +201,10 @@ $(SYSCFG_GEN_FILES): syscfg
 
 syscfg: ../example.syscfg
 	@echo Generating SysConfig files ...
-	$(SYSCFG_NODE) $(SYSCFG_CLI_PATH)/dist/cli.js --product $(SYSCFG_SDKPRODUCT) --context r5fss0-0 --output generated/ ../example.syscfg
+	$(SYSCFG_NODE) $(SYSCFG_CLI_PATH)/dist/cli.js --product $(SYSCFG_SDKPRODUCT) --context r5fss0-1 --output generated/ ../example.syscfg
 
 syscfg-gui:
-	$(SYSCFG_NWJS) $(SYSCFG_PATH) --product $(SYSCFG_SDKPRODUCT) --device AM64x_beta --context r5fss0-0 --output generated/  ../example.syscfg
+	$(SYSCFG_NWJS) $(SYSCFG_PATH) --product $(SYSCFG_SDKPRODUCT) --device AM64x_beta --context r5fss0-1 --output generated/  ../example.syscfg
 
 #
 # Generation of boot image which can be loaded by Secondary Boot Loader (SBL)
@@ -236,13 +238,13 @@ else
 endif
 
 MULTI_CORE_IMAGE_PARAMS = \
-	$(BOOTIMAGE_CORE_ID_r5fss0-0) $(BOOTIMAGE_RPRC_NAME) \
+	$(BOOTIMAGE_CORE_ID_r5fss0-1) $(BOOTIMAGE_RPRC_NAME) \
 
 $(BOOTIMAGE_RPRC_NAME): $(OUTNAME)
 	$(OUTRPRC_CMD) $(OUTNAME) $(BOOTIMAGE_RPRC_NAME) >> $(BOOTIMAGE_TEMP_OUT_FILE)
 
 $(BOOTIMAGE_NAME): $(BOOTIMAGE_RPRC_NAME)
-	@echo  Boot image: am64x:r5fss0-0:freertos:ti-arm-clang $(BOOTIMAGE_PATH)/$@ ...
+	@echo  Boot image: am64x:r5fss0-1:freertos:ti-arm-clang $(BOOTIMAGE_PATH)/$@ ...
 ifneq ($(OS),Windows_NT)
 	$(CHMOD) a+x $(MULTI_CORE_IMAGE_GEN)
 	$(CHMOD) a+x $(BOOTIMAGE_CERT_GEN_CMD)
@@ -250,7 +252,7 @@ endif
 	$(MULTI_CORE_IMAGE_GEN) LE $(SBL_DEV_ID) $(BOOTIMAGE_NAME) $(MULTI_CORE_IMAGE_PARAMS) >> $(BOOTIMAGE_TEMP_OUT_FILE)
 #	$(BOOTIMAGE_CERT_GEN_CMD) -b $(BOOTIMAGE_PATH)/$(BOOTIMAGE_NAME) -o $(BOOTIMAGE_PATH)/$(BOOTIMAGE_NAME_SIGNED) -c R5 -l $(SBL_RUN_ADDRESS) -k $(BOOTIMAGE_CERT_KEY) >> $(BOOTIMAGE_TEMP_OUT_FILE)
 	$(RM) $(BOOTIMAGE_TEMP_OUT_FILE)
-	@echo  Boot image: am64x:r5fss0-0:freertos:ti-arm-clang $(BOOTIMAGE_PATH)/$@ Done !!!
+	@echo  Boot image: am64x:r5fss0-1:freertos:ti-arm-clang $(BOOTIMAGE_PATH)/$@ Done !!!
 	@echo  .
 
 -include $(addprefix $(OBJDIR)/, $(DEPS))
